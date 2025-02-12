@@ -8,7 +8,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.Queue;
 
 public class Snake extends JPanel implements ActionListener, KeyListener {
 
@@ -17,6 +22,11 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
     int tilesize = 32;
     int boardwidth = columnCount * tilesize;
     int boardheight = rowCount * tilesize;
+
+    ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    Queue<Character> inputQueue = new LinkedList<>();
+
+
     @Override
     public void actionPerformed(ActionEvent e) {
         move();
@@ -30,22 +40,21 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
         if(e.getKeyCode() == KeyEvent.VK_UP) {
-            snakeHead.updateDirection('U');
+            inputQueue.add('U');
         }
         else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
-            snakeHead.updateDirection('D');
+            inputQueue.add('D');
         }
         else if(e.getKeyCode() == KeyEvent.VK_LEFT) {
-            snakeHead.updateDirection('L');
+            inputQueue.add('L');
         }
         else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
-            snakeHead.updateDirection('R');
+            inputQueue.add('R');
         }
     }
 
@@ -70,27 +79,9 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
             this.height = height;
         }
 
-        public boolean validateInput(char direction) {
-            if(this.direction == 'U' && direction == 'D') {
-                return false;
-            }
-            if(this.direction == 'D' && direction == 'U') {
-                return false;
-            }
-            if(this.direction == 'L' && direction == 'R') {
-                return false;
-            }
-            if(this.direction == 'R' && direction == 'L') {
-                return false;
-            }
-            return true;
-        }
-
         public void updateDirection(char direction){
-            if(validateInput(direction)){
                 this.direction = direction;
                 updateVelocity(direction);
-            }
         }
 
         public void updateVelocity(char direction){
@@ -131,6 +122,9 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
 
         addKeyListener(this);
         setFocusable(true);
+
+        executor.scheduleAtFixedRate(this::processInputQueue, 100, 100, TimeUnit.MILLISECONDS);
+
     }
 
     void loadMap() {
@@ -140,6 +134,45 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
         for(int i = 0; i < 2; i++){
             Block TailSegment = new Block(14*tilesize, 9*tilesize, tilesize, tilesize);
             snakeTail.add(TailSegment);
+        }
+    }
+
+    public boolean validateInput(char direction) {
+        if(snakeHead.direction == 'U' && direction == 'D') {
+            return false;
+        }
+        if(snakeHead.direction == 'D' && direction == 'U') {
+            return false;
+        }
+        if(snakeHead.direction == 'L' && direction == 'R') {
+            return false;
+        }
+        if(snakeHead.direction == 'R' && direction == 'L') {
+            return false;
+        }
+
+        /*
+        char InitialDirection = snakeHead.direction;
+        snakeHead.updateDirection(direction);
+        snakeHead.x += snakeHead.velocityX;
+        snakeHead.y += snakeHead.velocityY;
+        if(checkColision(snakeHead, snakeTail.getFirst())) {
+            return false;
+        }
+        snakeHead.x -= snakeHead.velocityX;
+        snakeHead.y -= snakeHead.velocityY;
+        snakeHead.updateDirection(InitialDirection);
+
+         */
+        return true;
+    }
+
+    void processInputQueue() {
+        if (!inputQueue.isEmpty()) {
+            char direction = inputQueue.poll();
+            if(validateInput(direction)) {
+                snakeHead.updateDirection(direction);
+            }
         }
     }
 

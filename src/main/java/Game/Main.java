@@ -25,3 +25,9 @@ public class Main {
     }
 
 }
+/*
+TODO
+    1.fix bug !
+    2.show score
+    3.gameOver
+ */
