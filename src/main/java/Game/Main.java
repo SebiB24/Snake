@@ -1,7 +1,8 @@
 package Game;
 
 
-import javax.swing.JFrame;
+import javax.swing.*;
+import java.awt.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -9,7 +10,7 @@ public class Main {
         int columnCount = 30;
         int tilesize = 32;
         int boardWidth = columnCount * tilesize;
-        int boardHeight = rowCount * tilesize;
+        int boardHeight = rowCount * tilesize + 45;
 
         JFrame frame = new JFrame("Snake");
         frame.setSize(boardWidth, boardHeight);
@@ -30,4 +31,6 @@ TODO
     1.fix bug !
     2.show score
     3.gameOver
+    4.apple random spawn on snake fix
+    5.cant go down from starting position fix
  */

@@ -7,7 +7,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.concurrent.Executors;
@@ -40,21 +39,42 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
+        if(e.getKeyCode() == KeyEvent.VK_UP) {
+            scheduleCommand('U');
+        }
+        else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
+            scheduleCommand('D');
+        }
+        else if(e.getKeyCode() == KeyEvent.VK_LEFT) {
+            scheduleCommand('L');
+        }
+        else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
+            scheduleCommand('R');
+        }
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
-        if(e.getKeyCode() == KeyEvent.VK_UP) {
-            inputQueue.add('U');
+
+    }
+
+    void scheduleCommand(char direction) {
+        inputQueue.add(direction);
+        if (inputQueue.size() == 1) {
+            executor.schedule(this::processNextCommand, 100, TimeUnit.MILLISECONDS);
         }
-        else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
-            inputQueue.add('D');
-        }
-        else if(e.getKeyCode() == KeyEvent.VK_LEFT) {
-            inputQueue.add('L');
-        }
-        else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
-            inputQueue.add('R');
+    }
+
+    void processNextCommand() {
+        if (!inputQueue.isEmpty()) {
+            char direction = inputQueue.poll();
+            if(validateInput(direction)) {
+                snakeHead.updateDirection(direction);
+            }
+
+            if (!inputQueue.isEmpty()) {
+                executor.schedule(this::processNextCommand, 100, TimeUnit.MILLISECONDS);
+            }
         }
     }
 
@@ -69,19 +89,23 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
         char direction = 'U';
         int velocityX = 0;
         int velocityY = 0;
+        Image image;
 
-        public Block(int x, int y, int width, int height) {
+        public Block(int x, int y, int width, int height, Image image) {
             this.x = x;
             this.y = y;
             this.StartX = x;
             this.StartY = y;
             this.width = width;
             this.height = height;
+            this.image = image;
         }
 
         public void updateDirection(char direction){
-                this.direction = direction;
-                updateVelocity(direction);
+
+            updateImage(direction);
+            this.direction = direction;
+            updateVelocity(direction);
         }
 
         public void updateVelocity(char direction){
@@ -102,6 +126,21 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
                 velocityY = 0;
             }
         }
+
+        public void updateImage(char direction){
+            if(direction == 'U'){
+                this.image = snakeHeadUp;
+            }
+            else if(direction == 'D'){
+                this.image = snakeHeadDown;
+            }
+            else if(direction == 'L'){
+                this.image = snakeHeadLeft;
+            }
+            else if(direction == 'R'){
+                this.image = snakeHeadRight;
+            }
+        }
     }
 
     Random rand = new Random();
@@ -110,11 +149,30 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
     Block food;
     Block snakeHead;
     ArrayList<Block> snakeTail;
+    Image snakeHeadUp;
+    Image snakeHeadDown;
+    Image snakeHeadLeft;
+    Image snakeHeadRight;
+    Image appleImage;
+    Image snakeTailUp;
+    Image snakeTailDown;
+    Image snakeTailLeft;
+    Image snakeTailRight;
 
 
     public Snake() {
+
+        snakeHeadUp = new ImageIcon(getClass().getResource("/Snake/SnakeHeadUp.png")).getImage();
+        snakeHeadDown = new ImageIcon(getClass().getResource("/Snake/SnakeHeadDown.png")).getImage();
+        snakeHeadLeft = new ImageIcon(getClass().getResource("/Snake/SnakeHeadLeft.png")).getImage();
+        snakeHeadRight = new ImageIcon(getClass().getResource("/Snake/SnakeHeadRight.png")).getImage();
+        appleImage = new ImageIcon(getClass().getResource("/Snake/Apple.png")).getImage();
+        snakeTailUp = new ImageIcon(getClass().getResource("/Snake/TailSegmentUp.png")).getImage();
+        snakeTailDown = new ImageIcon(getClass().getResource("/Snake/TailSegmentDown.png")).getImage();
+        snakeTailLeft = new ImageIcon(getClass().getResource("/Snake/TailSegmentLeft.png")).getImage();
+        snakeTailRight = new ImageIcon(getClass().getResource("/Snake/TailSegmentRight.png")).getImage();
         setPreferredSize(new Dimension(boardwidth, boardheight));
-        setBackground(Color.BLACK);
+        setBackground(Color.GRAY);
 
         loadMap();
         gameLoop = new Timer(100, this);
@@ -123,16 +181,15 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
         addKeyListener(this);
         setFocusable(true);
 
-        executor.scheduleAtFixedRate(this::processInputQueue, 100, 100, TimeUnit.MILLISECONDS);
 
     }
 
     void loadMap() {
-        food = new Block(rand.nextInt(29)*tilesize, rand.nextInt(19)*tilesize, tilesize, tilesize);
-        snakeHead = new Block(14*tilesize, 9*tilesize, tilesize, tilesize);
+        food = new Block(rand.nextInt(29)*tilesize, rand.nextInt(19)*tilesize, tilesize, tilesize, appleImage);
+        snakeHead = new Block(14*tilesize, 9*tilesize, tilesize, tilesize, snakeHeadRight);
         snakeTail = new ArrayList<Block>();
         for(int i = 0; i < 2; i++){
-            Block TailSegment = new Block(14*tilesize, 9*tilesize, tilesize, tilesize);
+            Block TailSegment = new Block( 14*tilesize, 9*tilesize, tilesize, tilesize, snakeTailRight);
             snakeTail.add(TailSegment);
         }
     }
@@ -151,7 +208,7 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
             return false;
         }
 
-        /*
+
         char InitialDirection = snakeHead.direction;
         snakeHead.updateDirection(direction);
         snakeHead.x += snakeHead.velocityX;
@@ -163,18 +220,10 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
         snakeHead.y -= snakeHead.velocityY;
         snakeHead.updateDirection(InitialDirection);
 
-         */
+
         return true;
     }
 
-    void processInputQueue() {
-        if (!inputQueue.isEmpty()) {
-            char direction = inputQueue.poll();
-            if(validateInput(direction)) {
-                snakeHead.updateDirection(direction);
-            }
-        }
-    }
 
     public void CheckAndWorp(Block block){
         if(block.x >= boardwidth){
@@ -202,14 +251,26 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
 
     int score = 0;
 
+    Image getTailImage(){
+        if(snakeHead.direction == 'U')
+            return snakeTailUp;
+        if(snakeHead.direction == 'D')
+            return snakeTailDown;
+        if(snakeHead.direction == 'L')
+            return snakeTailLeft;
+        return snakeTailRight;
+    }
+
     void move(){
 
         for(int i = snakeTail.size()-1; i > 0; i--){
             snakeTail.get(i).x = snakeTail.get(i-1).x;
             snakeTail.get(i).y = snakeTail.get(i-1).y;
+            snakeTail.get(i).image = snakeTail.get(i-1).image;
         }
         snakeTail.get(0).x = snakeHead.x;
         snakeTail.get(0).y = snakeHead.y;
+        snakeTail.get(0).image = getTailImage();
 
         snakeHead.x += snakeHead.velocityX;
         snakeHead.y += snakeHead.velocityY;
@@ -217,7 +278,7 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
             score += 10;
             food.x = rand.nextInt(29)*tilesize;
             food.y = rand.nextInt(19)*tilesize;
-            Block tailSegment = new Block(snakeTail.getLast().x, snakeTail.getLast().y, tilesize, tilesize);
+            Block tailSegment = new Block(snakeTail.getLast().x, snakeTail.getLast().y, tilesize, tilesize, snakeTailRight);
             snakeTail.add(tailSegment);
         }
         if(snakeTail.size() > 3){
@@ -237,14 +298,11 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
         draw(g);
     }
     public void draw(Graphics g) {
-        g.setColor(Color.PINK);
-        g.fillRect(food.x, food.y, food.width, food.height);
-
-        g.setColor(Color.yellow);
-        g.fillRect(snakeHead.x, snakeHead.y, snakeHead.width, snakeHead.height);
+        g.drawImage(food.image, food.x, food.y, food.width, food.height, null);
 
         for(Block tail : snakeTail){
-            g.fillRect(tail.x, tail.y, tail.width, tail.height);
+            g.drawImage(tail.image, tail.x, tail.y, tail.width, tail.height, null);
         }
+        g.drawImage(snakeHead.image, snakeHead.x, snakeHead.y, snakeHead.width, snakeHead.height, null);
     }
 }
