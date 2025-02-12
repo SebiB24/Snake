@@ -28,6 +28,9 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        if(gameOver){
+            gameLoop.stop();
+        }
         move();
         repaint();
     }
@@ -39,6 +42,9 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
+        if(gameOver){
+            restart();
+        }
         if(e.getKeyCode() == KeyEvent.VK_UP) {
             scheduleCommand('U');
         }
@@ -86,7 +92,7 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
         int StartY;
         int width;
         int height;
-        char direction = 'U';
+        char direction;
         int velocityX = 0;
         int velocityY = 0;
         Image image;
@@ -183,6 +189,12 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
 
 
     }
+    void restart(){
+        score = 0;
+        gameOver = false;
+        gameLoop.start();
+        loadMap();
+    }
 
     void loadMap() {
         food = new Block(rand.nextInt(29)*tilesize, rand.nextInt(19)*tilesize, tilesize, tilesize, appleImage);
@@ -250,6 +262,7 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
     }
 
     int score = 0;
+    boolean gameOver = false;
 
     Image getTailImage(){
         if(snakeHead.direction == 'U')
@@ -284,7 +297,8 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
         if(snakeTail.size() > 3){
             for(Block tail: snakeTail){
                 if(checkColision(snakeHead, tail)){
-                    loadMap();
+                    gameOver = true;
+                    return;
                 }
             }
         }
@@ -304,5 +318,13 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
             g.drawImage(tail.image, tail.x, tail.y, tail.width, tail.height, null);
         }
         g.drawImage(snakeHead.image, snakeHead.x, snakeHead.y, snakeHead.width, snakeHead.height, null);
+
+        g.setFont(new Font("Arial", Font.PLAIN, 18));
+        if(gameOver){
+            g.drawString("Game Over: " + String.valueOf(score), tilesize/2, tilesize/2);
+        }
+        else{
+            g.drawString(" Score: " + String.valueOf(score), tilesize/2, tilesize/2);
+        }
     }
 }

@@ -29,8 +29,5 @@ public class Main {
 /*
 TODO
     1.fix bug !
-    2.show score
-    3.gameOver
     4.apple random spawn on snake fix
-    5.cant go down from starting position fix
  */
