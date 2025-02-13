@@ -29,5 +29,5 @@ public class Main {
 /*
 TODO
     1.fix bug !
-    4.apple random spawn on snake fix
+    2.apple random spawn on snake fix
  */

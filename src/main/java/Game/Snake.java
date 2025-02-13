@@ -220,19 +220,6 @@ public class Snake extends JPanel implements ActionListener, KeyListener {
             return false;
         }
 
-
-        char InitialDirection = snakeHead.direction;
-        snakeHead.updateDirection(direction);
-        snakeHead.x += snakeHead.velocityX;
-        snakeHead.y += snakeHead.velocityY;
-        if(checkColision(snakeHead, snakeTail.getFirst())) {
-            return false;
-        }
-        snakeHead.x -= snakeHead.velocityX;
-        snakeHead.y -= snakeHead.velocityY;
-        snakeHead.updateDirection(InitialDirection);
-
-
         return true;
     }
 
