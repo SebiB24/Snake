@@ -19,7 +19,7 @@ This is a **classic Snake game** built using **Java and Swing**. The game featur
 ### **Running the Game**
 1. Clone this repository
 2. Open the project in your preferred Java IDE.
-3. Compile and run the `Snake.java` file.
+3. Compile and run the `Main.java` file.
 
 ## 🎮 Controls
 - **Arrow Keys (⬆️⬇️⬅️➡️):** Move the snake in the desired direction
