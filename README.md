@@ -26,7 +26,8 @@ This is a **classic Snake game** built using **Java and Swing**. The game featur
 - **Restart Game:** Press any key after Game Over
 
 ## 📸 Preview
-![snake_game_preview](https://github.com/user-attachments/assets/e5c19b48-8e6e-4df7-886c-2cf339776834)
+![snake_game_preview](https://github.com/user-attachments/assets/97e479c3-dfba-411f-9a65-fb992617b3c5)
+
 
 
 ## 🔧 How it Works
